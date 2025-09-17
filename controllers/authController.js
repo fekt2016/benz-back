@@ -348,13 +348,14 @@ exports.logout = catchAsync(async (req, res, next) => {
       : new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     // Add the token to the blacklist
-    await TokenBlacklist.create({
+    const black = await TokenBlacklist.create({
       token,
       user: decoded.id,
       userType: "user",
       expiresAt,
       reason: "logout",
     });
+    console.log("Token blacklisted:", black);
 
     // Log the successful logout
     await securityLogService.logEvent({

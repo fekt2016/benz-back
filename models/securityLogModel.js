@@ -84,6 +84,7 @@ const securityLogSchema = new mongoose.Schema(
         "data_export",
         "data_deletion",
         "otp_verification",
+        "logout_attempt",
       ],
     },
     severity: {

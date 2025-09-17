@@ -1,0 +1,27 @@
+{
+  "name": "benz-back",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "NODE_ENV=development nodemon server.js",
+    "start:prod": "NODE_ENV=production node server.js",
+    "debug": "ndb server.js"
+  },
+  "dependencies": {
+    "@bull-board/api": "^6.12.7",
+    "@bull-board/express": "^6.12.7",
+    "@bull-board/ui": "^6.12.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

@@ -9,7 +9,7 @@ const app = require("./app");
 class Server {
   constructor() {
     this.server = null;
-    this.reuiredEnvVars = ["MONGO_URL", "MONGO_PASSWORD"];
+    this.requiredEnvVars = ["MONGO_URL", "MONGO_PASSWORD"];
     this.validateEnvironment();
 
     this.mongodb = process.env.MONGO_URL.replace(
@@ -20,7 +20,7 @@ class Server {
   }
 
   validateEnvironment() {
-    const missingVars = this.reuiredEnvVars.filter(
+    const missingVars = this.requiredEnvVars.filter(
       (envVar) => !process.env[envVar]
     );
 

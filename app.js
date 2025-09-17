@@ -3,10 +3,19 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const AppError = require("./utils/appError"); // make sure this exists
-
+const globalErrorHandler = require("./controllers/errorController");
 // Routers
 // const newsletterRouter = require("./routes/newsletterRoutes");
-const routers = {};
+const routers = {
+  payment: require("./routes/paymentRoutes"),
+  user: require("./routes/userRoutes"),
+  car: require("./routes/carRoutes"),
+  driver: require("./routes/driverRoutes"),
+  notification: require("./routes/notificationRoutes"),
+  review: require("./routes/reviewRoutes"),
+  booking: require("./routes/bookingRoutes"),
+  auth: require("./routes/authRoutes"),
+};
 const app = express();
 
 // Environment
@@ -125,8 +134,15 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use("/api/v1/newsletter", (req, res) => {
-  res.send("ok");
-});
+app.use("/api/v1/payments", routers.payment);
+app.use("/api/v1/users", routers.user);
+app.use("/api/v1/cars", routers.car);
+app.use("/api/v1/drivers", routers.driver);
+app.use("/api/v1/notifications", routers.notification);
+app.use("/api/v1/reviews", routers.review);
+app.use("/api/v1/bookings", routers.booking);
+app.use("/api/v1/auth", routers.auth);
+
+app.use(globalErrorHandler);
 
 module.exports = app;

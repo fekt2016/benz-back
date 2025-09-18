@@ -133,7 +133,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Routes go here
 app.use("/api/v1/payments", routers.payment);
 app.use("/api/v1/users", routers.user);
 app.use("/api/v1/cars", routers.car);

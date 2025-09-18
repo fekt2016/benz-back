@@ -142,7 +142,7 @@ class Server {
     try {
       await this.connectDatabase();
       await this.startServer();
-      //   initCronJobs();
+      initCronJobs();
     } catch (error) {
       console.error("Failed to initialize application:", error.message);
       process.exit(1);

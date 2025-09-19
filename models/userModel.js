@@ -58,7 +58,6 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   }
   return false;
 };
-
 // Method to check OTP
 userSchema.methods.verifyOtp = function (enteredOtp) {
   const hashedOtp = crypto

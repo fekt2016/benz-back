@@ -112,7 +112,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 exports.sendOtp = catchAsync(async (req, res, next) => {
-  const { loginId } = req.body;
+  const { phone: loginId } = req.body;
 
   if (!loginId) {
     await securityLogService.logEvent({
@@ -177,7 +177,9 @@ exports.sendOtp = catchAsync(async (req, res, next) => {
 });
 
 exports.verifyOtp = catchAsync(async (req, res, next) => {
-  const { loginId, otp } = req.body;
+  console.log("verifyOtp");
+  const { phone: loginId, otp } = req.body;
+  console.log(loginId, otp);
 
   if (!loginId || !otp) {
     await securityLogService.logEvent({
@@ -398,30 +400,38 @@ exports.logout = catchAsync(async (req, res, next) => {
 });
 // Protect routes
 exports.protect = catchAsync(async (req, res, next) => {
+  console.log("=== 🔐 Protect middleware triggered ===");
+  console.log("➡️  Authorization Header:", req.headers.authorization);
+  console.log("➡️  Cookies:", req.cookies);
+
   const fullPath = req.originalUrl.split("?")[0];
-  console.log("fullPath:", fullPath);
   const method = req.method.toUpperCase();
+  console.log("➡️  Route:", method, fullPath);
 
   // 1) Public routes bypass auth
-  if (!isPublicRoute(fullPath, method)) {
+  if (isPublicRoute(fullPath, method)) {
+    console.log("🟢 Public route, skipping auth");
     return next();
   }
 
-  // 2) Extract token from header or cookies
+  // 2) Extract token
   let token = extractToken(req.headers.authorization);
-  if (!token && req.cookies?.token) {
-    token = req.cookies.token;
+  if (!token && req.cookies?.jwt) {
+    token = req.cookies.jwt; // ✅ make sure key matches
   }
+  console.log("➡️  Extracted Token:", token);
 
   if (!token) {
+    console.log("❌ No token found");
     return next(
       new AppError("You are not logged in! Please log in to get access.", 401)
     );
   }
 
-  // 3) Check if token is blacklisted
+  // 3) Check blacklist
   const blacklisted = await TokenBlacklist.findOne({ token });
   if (blacklisted) {
+    console.log("❌ Token is blacklisted");
     return next(
       new AppError("Your session has expired. Please log in again.", 401)
     );
@@ -429,33 +439,37 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // 4) Verify token
   const { decoded, error } = await verifyToken(token);
+  console.log("➡️  Decoded token:", decoded);
   if (error || !decoded) {
+    console.log("❌ Invalid or expired token");
     return next(new AppError("Invalid or expired token", 401));
   }
 
   // 5) Find user
   const currentUser = await User.findById(decoded.id);
+  console.log("➡️  Found user:", currentUser);
   if (!currentUser) {
+    console.log("❌ No user found for this token");
     return next(
       new AppError("The user belonging to this token no longer exists.", 401)
     );
   }
 
-  // 6) Password changed after token was issued
+  // 6) Check password change
   if (currentUser.changedPasswordAfter(decoded.iat)) {
+    console.log("❌ Password changed after token was issued");
     return next(
       new AppError("Password recently changed! Please log in again.", 401)
     );
   }
 
-  // 7) Attach user to request
+  // 7) Attach user
   req.user = currentUser;
-
-  console.log(
-    `✅ Authenticated ${currentUser.role} (${
-      currentUser.phone || currentUser.email
-    })`
-  );
+  console.log("✅ Authenticated user:", {
+    id: currentUser._id,
+    role: currentUser.role,
+    email: currentUser.email,
+  });
 
   next();
 });
@@ -696,5 +710,35 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   // 6. Send success response (and maybe auto-login)
   createSendToken(user, 200, res);
 });
+exports.getMe = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user._id).select("-password -__v");
+  console.log(user);
 
-exports.getUserProfile = catchAsync(async (req, res, next) => {});
+  if (!user) {
+    await securityLogService.logEvent({
+      user: req.user.id,
+      userTypeModel: "User",
+      eventType: "get_me",
+      severity: "error",
+      status: "failed",
+      ipAddress: req.ip,
+      userAgent: req.get("User-Agent"),
+      description: "Get me failed",
+    });
+    return next(new AppError("User not found", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: { user },
+  });
+});
+// exports.getUserProfile = catchAsync(async (req, res, next) => {
+//   const user = await User.findById(req.user.id);
+//   res.status(200).json({
+//     status: "success",
+//     data: {
+//       user,
+//     },
+//   });
+// });

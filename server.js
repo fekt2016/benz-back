@@ -1,9 +1,6 @@
 const mongoose = require("mongoose");
-
 const dotenv = require("dotenv");
-
 dotenv.config({ path: "./config.env" });
-
 const app = require("./app");
 
 class Server {
@@ -48,7 +45,7 @@ class Server {
       // Log MongoDB connection details (without password)
       const dbHost = mongoose.connection.host;
       const dbName = mongoose.connection.name;
-      console.log(`MongoDB Host: ${dbHost}, Database: ${dbName}`);
+      // console.log(`MongoDB Host: ${dbHost}, Database: ${dbName}`);
 
       return true;
     } catch (error) {
@@ -63,7 +60,7 @@ class Server {
         process.env.HOST ||
         (process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost");
 
-      const port = process.env.PORT || 6000;
+      const port = process.env.PORT || 4000;
 
       this.server = app.listen(port, host, () => {
         console.log(
@@ -142,7 +139,7 @@ class Server {
     try {
       await this.connectDatabase();
       await this.startServer();
-      initCronJobs();
+      // initCronJobs();
     } catch (error) {
       console.error("Failed to initialize application:", error.message);
       process.exit(1);

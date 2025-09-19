@@ -71,6 +71,7 @@ const securityLogSchema = new mongoose.Schema(
         "seller_approval",
         "seller_suspension",
         "seller_commission_change",
+        "login_attempt",
 
         // Admin Events
         "admin_action",

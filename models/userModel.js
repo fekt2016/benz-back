@@ -47,6 +47,17 @@ userSchema.methods.createOtp = function () {
   this.otpExpires = Date.now() + 10 * 60 * 1000; // 10 min
   return otp; // Return raw OTP to send via SMS
 };
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
+};
 
 // Method to check OTP
 userSchema.methods.verifyOtp = function (enteredOtp) {

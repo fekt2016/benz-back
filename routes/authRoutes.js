@@ -18,7 +18,7 @@ router.patch(
 // Protect all routes after this middleware
 router.use(authController.protect);
 
-// Authenticated user routes gg
+// Authenticated user routes ggg
 router.get("/me", authController.getMe);
 router.patch("/updateMyPassword", authController.updatePassword);
 router.post("/logout", authController.logout);

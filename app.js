@@ -5,13 +5,14 @@ const morgan = require("morgan");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 const cookieParser = require("cookie-parser");
+const cloudinary = require("cloudinary").v2;
 
 // Routers
 const routers = {
   payment: require("./routes/paymentRoutes"),
   user: require("./routes/userRoutes"),
   car: require("./routes/carRoutes"),
-  driver: require("./routes/driverRoutes"),
+  drivers: require("./routes/driverRoutes"),
   notification: require("./routes/notificationRoutes"),
   review: require("./routes/reviewRoutes"),
   booking: require("./routes/bookingRoutes"),
@@ -19,6 +20,15 @@ const routers = {
 };
 
 const app = express();
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+  timeout: 120000,
+});
+app.set("cloudinary", cloudinary);
+
 app.use(cookieParser());
 // Environment
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -193,7 +203,7 @@ app.use((req, res, next) => {
 app.use("/api/v1/payments", routers.payment);
 app.use("/api/v1/users", routers.user);
 app.use("/api/v1/cars", routers.car);
-app.use("/api/v1/drivers", routers.driver);
+app.use("/api/v1/drivers", routers.drivers);
 app.use("/api/v1/notifications", routers.notification);
 app.use("/api/v1/reviews", routers.review);
 app.use("/api/v1/bookings", routers.booking);

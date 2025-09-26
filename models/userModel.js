@@ -19,7 +19,20 @@ const userSchema = new mongoose.Schema(
     licenseNumber: { type: String },
     licenseImage: { type: String }, // Cloudinary URL
     licenseVerified: { type: Boolean, default: false },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+    avatar: { type: String, default: null },
+    drivers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Driver", // reference to Driver model
+      },
+    ],
   },
+
   { timestamps: true }
 );
 

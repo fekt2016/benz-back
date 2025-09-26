@@ -15,6 +15,7 @@ const { isPublicRoute } = require("../utils/PublicRoute");
 // Utility: Extract Bearer token
 
 exports.signup = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const { fullName, phone, password, passwordConfirm, email } = req.body;
 
   // Phone validation
@@ -177,9 +178,7 @@ exports.sendOtp = catchAsync(async (req, res, next) => {
 });
 
 exports.verifyOtp = catchAsync(async (req, res, next) => {
-  console.log("verifyOtp");
   const { phone: loginId, otp } = req.body;
-  console.log(loginId, otp);
 
   if (!loginId || !otp) {
     await securityLogService.logEvent({
@@ -200,7 +199,6 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ phone: normalizedPhone }).select(
     "+otp +otpExpires"
   );
-  console.log(user);
 
   if (!user) {
     await securityLogService.logEvent({
@@ -357,7 +355,6 @@ exports.logout = catchAsync(async (req, res, next) => {
       expiresAt,
       reason: "logout",
     });
-    console.log("Token blacklisted:", black);
 
     // Log the successful logout
     await securityLogService.logEvent({
@@ -400,13 +397,8 @@ exports.logout = catchAsync(async (req, res, next) => {
 });
 // Protect routes
 exports.protect = catchAsync(async (req, res, next) => {
-  console.log("=== 🔐 Protect middleware triggered ===");
-  console.log("➡️  Authorization Header:", req.headers.authorization);
-  console.log("➡️  Cookies:", req.cookies);
-
   const fullPath = req.originalUrl.split("?")[0];
   const method = req.method.toUpperCase();
-  console.log("➡️  Route:", method, fullPath);
 
   // 1) Public routes bypass auth
   if (isPublicRoute(fullPath, method)) {
@@ -419,7 +411,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   if (!token && req.cookies?.jwt) {
     token = req.cookies.jwt; // ✅ make sure key matches
   }
-  console.log("➡️  Extracted Token:", token);
 
   if (!token) {
     console.log("❌ No token found");
@@ -439,7 +430,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // 4) Verify token
   const { decoded, error } = await verifyToken(token);
-  console.log("➡️  Decoded token:", decoded);
+
   if (error || !decoded) {
     console.log("❌ Invalid or expired token");
     return next(new AppError("Invalid or expired token", 401));
@@ -447,7 +438,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // 5) Find user
   const currentUser = await User.findById(decoded.id);
-  console.log("➡️  Found user:", currentUser);
+
   if (!currentUser) {
     console.log("❌ No user found for this token");
     return next(
@@ -465,11 +456,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // 7) Attach user
   req.user = currentUser;
-  console.log("✅ Authenticated user:", {
-    id: currentUser._id,
-    role: currentUser.role,
-    email: currentUser.email,
-  });
 
   next();
 });

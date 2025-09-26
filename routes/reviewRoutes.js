@@ -4,9 +4,11 @@ const authController = require("../controllers/authController");
 
 const router = express.Router({ mergeParams: true });
 
-router.use(authController.protect);
-
-router.post("/:carId", reviewController.createReview);
-router.get("/:carId", reviewController.getCarReviews);
-
+router.post(
+  "/",
+  authController.protect,
+  authController.restrictTo("user"),
+  reviewController.addReview
+);
+router.get("/car/:id", reviewController.getCarReviews);
 module.exports = router;

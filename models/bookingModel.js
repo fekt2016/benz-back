@@ -4,28 +4,51 @@ const bookingSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     car: { type: mongoose.Schema.Types.ObjectId, ref: "Car", required: true },
+    driver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Driver",
+      default: null,
+    },
 
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
+    pickupDate: { type: Date, required: true },
+    returnDate: { type: Date, required: true },
     totalPrice: { type: Number, required: true },
-
     status: {
       type: String,
-      enum: ["pending", "confirmed", "cancelled", "completed"],
-      default: "pending",
+      enum: [
+        "pending",
+        "confirmed",
+        "license_required",
+        "payment_pending",
+        "cancelled",
+        "verification_pending",
+        "completed",
+      ],
+      default: "license required",
+    },
+    pickupLocation: {
+      type: String,
+      enum: [
+        "Kansas City",
+        "St. Louis",
+        "Springfield",
+        "Columbia",
+        "Independence",
+        "Lee's Summit",
+        "O'Fallon",
+        "St. Joseph",
+        "St. Charles",
+        "Blue Springs",
+      ],
+      required: true,
     },
 
-    insurance: {
-      provider: String,
-      policyNumber: String,
-      verified: { type: Boolean, default: false },
-    },
-
-    additionalDrivers: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
-    ],
+    // ✅ Insurance verification
 
     payment: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+    pickupTime: { type: String, default: null },
+    mileage: { type: Number, default: null },
+    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

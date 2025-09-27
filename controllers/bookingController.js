@@ -69,9 +69,6 @@ exports.createBooking = catchAsync(async (req, res, next) => {
           { session }
         );
       }
-      // else -> no driver yet
-      // booking will be created without driver
-      // we’ll allow adding it later
 
       const [booking] = await Booking.create(
         [
@@ -185,7 +182,7 @@ exports.userUpdateBooking = catchAsync(async (req, res, next) => {
           { $push: { drivers: driver._id } },
           { session }
         );
-        console.log("driver", driver._id);
+
         booking.driver = driver._id;
 
         await booking.save({ session });

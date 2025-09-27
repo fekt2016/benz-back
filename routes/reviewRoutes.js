@@ -10,5 +10,25 @@ router.post(
   authController.restrictTo("user"),
   reviewController.addReview
 );
+router
+  .route("/:id")
+  .patch(
+    authController.protect,
+    authController.restrictTo("user"),
+    reviewController.updateReview
+  )
+  .delete(
+    authController.protect,
+    authController.restrictTo("user"),
+    reviewController.deleteReview
+  );
+
+router.get(
+  "/user/:id",
+  authController.protect,
+  authController.restrictTo("user"),
+  reviewController.getUserReviews
+);
 router.get("/car/:id", reviewController.getCarReviews);
+
 module.exports = router;

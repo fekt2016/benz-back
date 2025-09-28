@@ -8,21 +8,19 @@ const router = express.Router();
 router.use(authController.protect);
 
 // Create a new payment intent/session
-router.post("/create", paymentController.createPayment);
-
-// Confirm a payment (webhook or callback)
-router.post("/confirm", paymentController.confirmPayment);
-
-// Refund a payment
-router.post("/:id/refund", paymentController.refundPayment);
-
-// Get all payments for logged-in user
-router.get("/my-payments", paymentController.getMyPayments);
-
-// Admin: get all payments
-router.get("/", paymentController.getAllPayments);
-
-// Admin: get single payment
-router.get("/:id", paymentController.getPaymentById);
-
+router.post(
+  "/create-checkout-session",
+  authController.restrictTo("user"),
+  paymentController.createStripePayment
+);
+router.get(
+  "/verify-payment/:sessionId/:bookingId",
+  authController.restrictTo("user"),
+  paymentController.verifyPayment
+);
+router.get(
+  "/confirmation/:bookingId",
+  authController.restrictTo("user"),
+  paymentController.getBookingConfirmation
+);
 module.exports = router;

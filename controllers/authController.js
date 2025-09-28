@@ -114,6 +114,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.sendOtp = catchAsync(async (req, res, next) => {
   const { phone: loginId } = req.body;
+  console.log("phone", loginId);
 
   if (!loginId) {
     await securityLogService.logEvent({
@@ -141,7 +142,8 @@ exports.sendOtp = catchAsync(async (req, res, next) => {
     });
     return next(new AppError("Please enter a valid phone number", 401));
   }
-  user = await User.findOne({ phone: loginId.replace(/\D/g, "") });
+  user = await User.findOne();
+  console.log(user);
   if (!user) {
     await securityLogService.logEvent({
       userTypeModel: "System",
@@ -698,7 +700,6 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 });
 exports.getMe = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user._id).select("-password -__v");
-  console.log(user);
 
   if (!user) {
     await securityLogService.logEvent({

@@ -200,7 +200,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use("/api/v1/payments", routers.payment);
+app.use("/api/v1/payment", routers.payment);
 app.use("/api/v1/users", routers.user);
 app.use("/api/v1/cars", routers.car);
 app.use("/api/v1/drivers", routers.drivers);

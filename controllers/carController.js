@@ -5,7 +5,6 @@ const fs = require("fs");
 // Add a new car
 // Create a new Benz car
 exports.createCar = catchAsync(async (req, res, next) => {
-  console.log("body", req.body);
   const { series, model, year, pricePerDay, transmission, fuelType, seats } =
     req.body;
 
@@ -22,7 +21,7 @@ exports.createCar = catchAsync(async (req, res, next) => {
 
     imageUrls = await Promise.all(uploadPromises);
   }
-  console.log("imageUrls", imageUrls);
+
   const car = await Car.create({
     series,
     model,
@@ -36,36 +35,6 @@ exports.createCar = catchAsync(async (req, res, next) => {
 
   res.status(201).json({ status: "success", data: car });
 });
-
-// exports.getCars = catchAsync(async (req, res, next) => {
-//   console.log("req.query", req.query);
-//   // If a query param is provided, filter by it
-//   const { status } = req.query;
-
-//   let filter = {};
-//   if (status) {
-//     // Only allow valid statuses
-//     const validStatuses = ["available", "maintenance", "rented"];
-//     if (validStatuses.includes(status)) {
-//       filter.status = status;
-//     } else {
-//       return next(
-//         new AppError(
-//           "Invalid status. Use available, maintenance, or rented.",
-//           400
-//         )
-//       );
-//     }
-//   }
-
-//   const cars = await Car.find(filter);
-
-//   res.status(200).json({
-//     status: "success",
-//     results: cars.length,
-//     data: cars,
-//   });
-// });
 
 // Get a single car by ID
 exports.getCar = catchAsync(async (req, res, next) => {
@@ -85,16 +54,6 @@ exports.getAllCars = catchAsync(async (req, res, next) => {
 // Update a car
 exports.updateCar = catchAsync(async (req, res, next) => {
   const updates = req.body;
-  console.log("updates", updates);
-
-  // if (updates.series && !BENZ_SERIES.includes(updates.series)) {
-  //   return res.status(400).json({
-  //     status: "fail",
-  //     message: `Invalid Mercedes-Benz series. Allowed: ${BENZ_SERIES.join(
-  //       ", "
-  //     )}`,
-  //   });
-  // }
 
   const car = await Car.findByIdAndUpdate(req.params.id, updates, {
     new: true,

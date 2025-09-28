@@ -5,9 +5,119 @@ const Driver = require("../models/driverModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
 const mongoose = require("mongoose");
+const { notifyBookingCreated } = require("../service/notificationHelper");
 
 // Create booking
 
+// exports.createBooking = catchAsync(async (req, res, next) => {
+//   const {
+//     car,
+//     pickupDate,
+//     returnDate,
+//     pickupLocation,
+//     driverId,
+//     insuranceImage,
+//     licenseImage,
+//   } = req.body;
+
+//   // 1. Validate car exists & availability
+//   const carDoc = await Car.findById(car);
+//   if (!carDoc) return next(new AppError("Car not found", 404));
+//   if (carDoc.status !== "available") {
+//     return next(new AppError("Car is not available", 400));
+//   }
+
+//   // 2. Validate dates
+//   const pickup = new Date(pickupDate);
+//   const returnD = new Date(returnDate);
+//   const days = Math.ceil((returnD - pickup) / (1000 * 60 * 60 * 24));
+//   if (isNaN(days) || days <= 0) {
+//     return next(new AppError("Return date must be after pickup date", 400));
+//   }
+
+//   const totalPrice = days * carDoc.pricePerDay;
+
+//   // ---------- TRANSACTION ----------
+//   const session = await mongoose.startSession();
+
+//   try {
+//     let driver;
+
+//     await session.withTransaction(async () => {
+//       if (driverId) {
+//         driver = await Driver.findOne({
+//           _id: driverId,
+//           user: req.user.id,
+//         }).session(session);
+//         if (!driver) throw new AppError("Driver not found", 404);
+//       } else if (licenseImage && insuranceImage) {
+//         const [newDriver] = await Driver.create(
+//           [
+//             {
+//               user: req.user.id,
+//               isDefault: true,
+//               license: { fileUrl: licenseImage, verified: false },
+//               insurance: { fileUrl: insuranceImage, verified: false },
+//             },
+//           ],
+//           { session }
+//         );
+//         driver = newDriver;
+
+//         await User.findByIdAndUpdate(
+//           req.user.id,
+//           { $push: { drivers: driver._id } },
+//           { session }
+//         );
+//       }
+
+//       const [booking] = await Booking.create(
+//         [
+//           {
+//             user: req.user.id,
+//             driver: driver ? driver._id : undefined,
+//             car: carDoc._id,
+//             pickupDate,
+//             returnDate,
+//             pickupLocation,
+//             totalPrice,
+//             status: driver ? "verification_pending" : "license_required",
+//           },
+//         ],
+//         { session }
+//       );
+
+//       const populatedBooking = await booking.populate([
+//         { path: "driver", select: "license insurance isDefault" },
+//         { path: "car", select: "make model pricePerDay images" },
+//       ]);
+
+//       // Send notifications
+//       await notifyBookingCreated({
+//         user: populatedBooking.user._id,
+//         userName: populatedBooking.user.name,
+//         carName: `${populatedBooking.car.name} ${populatedBooking.car.model}`,
+//         bookingId: populatedBooking._id,
+//         car: populatedBooking.car._id,
+//       });
+
+//       res.status(201).json({
+//         status: "success",
+//         data: booking,
+//       });
+//     });
+
+//     session.endSession();
+//   } catch (err) {
+//     console.log(err);
+//     session.endSession();
+//     return next(
+//       err instanceof AppError
+//         ? err
+//         : new AppError("Booking failed. Please try again.", 500)
+//     );
+//   }
+// });
 exports.createBooking = catchAsync(async (req, res, next) => {
   const {
     car,
@@ -86,10 +196,21 @@ exports.createBooking = catchAsync(async (req, res, next) => {
         { session }
       );
 
-      await booking.populate([
+      const populatedBooking = await booking.populate([
+        { path: "user", select: "name email" }, // Add user population
         { path: "driver", select: "license insurance isDefault" },
-        { path: "car", select: "make model pricePerDay images" },
+        { path: "car", select: "name model pricePerDay images" }, // Changed from make to name
       ]);
+
+      // ✅ FIXED: Correct notification call
+      await notifyBookingCreated({
+        userId: req.user.id, // Use req.user.id directly
+        userName: req.user.name || "Customer", // Use req.user.name or fallback
+        carName: `${carDoc.name} ${carDoc.model}`, // Use carDoc directly
+        bookingId: booking._id,
+        carId: carDoc._id,
+        totalPrice: totalPrice, // Add totalPrice which is required
+      });
 
       res.status(201).json({
         status: "success",
@@ -99,7 +220,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 
     session.endSession();
   } catch (err) {
-    console.log(err);
+    console.log("❌ Booking error:", err);
     session.endSession();
     return next(
       err instanceof AppError
